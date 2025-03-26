@@ -60,4 +60,23 @@ Duct tape.";
 
         assert_eq!(vec!["safe, fast, productive."], search(query, contents));
     }
+
+    #[test]
+    fn build_with_valid_args() {
+        let args = vec![
+            String::from("program_name"),
+            String::from("query"),
+            String::from("file_path"),
+        ];
+        let config = Config::build(&args).unwrap();
+        assert_eq!(config.query, "query");
+        assert_eq!(config.file_path, "file_path");
+    }
+
+    #[test]
+    fn build_with_insufficient_args() {
+        let args = vec![String::from("program_name")];
+        let config = Config::build(&args);
+        assert!(config.is_err());
+    }
 }
