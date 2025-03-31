@@ -13,13 +13,20 @@ use std::env;
 // --snip--
 
 impl Config {
-    pub fn build(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("not enough arguments");
-        }
+    pub fn build(
+        mut args: impl Iterator<Item = String>,
+    ) -> Result<Config, &'static str> {
+        args.next();
 
-        let query = args[1].clone();
-        let file_path = args[2].clone();
+        let query = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a query string"),
+        };
+
+        let file_path = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file path"),
+        };
 
         let ignore_case = env::var("IGNORE_CASE").is_ok();
 
@@ -30,7 +37,6 @@ impl Config {
         })
     }
 }
-
 
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
@@ -117,7 +123,7 @@ Trust me.";
             String::from("query"),
             String::from("file_path"),
         ];
-        let config = Config::build(&args).unwrap();
+        let config = Config::build(args.into_iter()).unwrap();
         assert_eq!(config.query, "query");
         assert_eq!(config.file_path, "file_path");
     }
@@ -125,7 +131,7 @@ Trust me.";
     #[test]
     fn build_with_insufficient_args() {
         let args = vec![String::from("program_name")];
-        let config = Config::build(&args);
+        let config = Config::build(args.into_iter());
         assert!(config.is_err());
     }
 }
